@@ -1,0 +1,32 @@
+{
+  "name": "Crawler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^3.15.2",
+    "@types/node-fetch": "^2.6.13",
+    "next": "^13.1.6",
+    "node-fetch": "^2.7.0",
+    "node-html-parser": "^7.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "whois-parsed": "^1.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^14.18.63",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "prisma": "^3.15.2",
+    "typescript": "^5.0.4"
+  }
+}

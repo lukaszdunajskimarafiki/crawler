@@ -1,0 +1,28 @@
+version: '3'
+services:
+  web:
+    build: .
+    container_name: crawler-web
+    working_dir: /app
+    environment:
+      # 'db' to nazwa serwisu poniżej, docker/podman rozwiąże to jako hostname
+      DATABASE_URL: "postgresql://postgres:tajnehaslo@db:5432/crawler_db?schema=public"
+      NODE_ENV: "production"
+    ports:
+      - "3555:3000" # Aplikacja dostępna na porcie 3555 hosta
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:16
+    container_name: crawler-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: tajnehaslo
+      POSTGRES_DB: crawler_db
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: always

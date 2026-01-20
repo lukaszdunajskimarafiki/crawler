@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model Domain {
+  id        Int      @id @default(autoincrement())
+  url       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    String   @default("pending") // pending, crawling, completed, error
+  pages     Page[]
+  links     Link[]
+  redirects  String? // JSON string storing redirect check results
+  expiryDate String?
+  registrant String?
+  isOption   Boolean @default(false)
+  sslIssuer  String?
+  sslExpiry  String?
+  sslValid   Boolean @default(false)
+  webpSupported Boolean @default(false)
+}
+
+model Page {
+  id              Int      @id @default(autoincrement())
+  url             String
+  domainId        Int
+  domain          Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  statusCode      Int
+  title           String?
+  metaDescription String?
+  canonical       String?
+  h1s             String?  // JSON string
+  h2s             String?  // JSON string
+  multipleTitleTags Boolean @default(false)
+  images          Image[]
+  links           Link[]
+  crawledAt       DateTime @default(now())
+}
+
+model Image {
+  id       Int    @id @default(autoincrement())
+  url      String
+  size     Int?
+  pageId   Int
+  page     Page   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+}
+
+model Link {
+  id         Int    @id @default(autoincrement())
+  url        String
+  statusCode Int?
+  pageId     Int?
+  page       Page?  @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  domainId   Int?
+  domain     Domain? @relation(fields: [domainId], references: [id], onDelete: Cascade)
+}

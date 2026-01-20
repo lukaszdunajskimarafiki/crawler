@@ -1,0 +1,217 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.status {
+    margin-bottom: 2rem;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.card {
+    background: #f0f0f0;
+    padding: 1rem;
+    border-radius: 8px;
+    min-width: 150px;
+    text-align: center;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+}
+
+.item {
+    border: 1px solid #eee;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.itemHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+.details {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.redirectList {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.redirectList li {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #fff;
+    border-radius: 4px;
+}
+
+.errorBadge {
+    background: #ffebee;
+    color: #c62828;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.chain {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+    word-break: break-all;
+}
+
+.summarySection {
+    margin-bottom: 2rem;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.bigNumber {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #0070f3;
+    margin: 0.5rem 0;
+}
+
+.statList {
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.statList p {
+    margin: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.25rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.errorText {
+    color: #d32f2f;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.table th,
+.table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.table th {
+    background: #f9f9f9;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+}
+
+.table th:hover {
+    background: #f0f0f0;
+}
+
+.urlCell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: #0070f3;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    transition: background 0.2s;
+}
+
+.button:hover {
+    background: #0051a2;
+}
+
+.titleCell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
+
+.pageButton {
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+    background: #f0f0f0;
+    border-color: #bbb;
+}
+
+.pageButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+}

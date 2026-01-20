@@ -1,0 +1,18 @@
+2025-12-01T10:38:20.821Z - API Handler called
+2025-12-01T10:38:20.823Z - Method: POST
+2025-12-01T10:38:20.826Z - Body: {"url":"https://example.com"}
+2025-12-01T10:38:44.568Z - API Handler called
+2025-12-01T10:38:44.570Z - Method: POST
+2025-12-01T10:38:44.572Z - Body: {"url":"https://example.com"}
+2025-12-01T10:41:23.493Z - API Handler called
+2025-12-01T10:41:23.495Z - Method: POST
+2025-12-01T10:41:23.498Z - Body: {"url":"https://example.com"}
+2025-12-01T10:41:56.833Z - API Handler called
+2025-12-01T10:41:56.836Z - Method: POST
+2025-12-01T10:41:56.838Z - Body: {"url":"https://example.com"}
+2025-12-01T10:45:56.235Z - API Handler called
+2025-12-01T10:45:56.237Z - Method: POST
+2025-12-01T10:45:56.238Z - Body: {"url":"https://example.com"}
+2025-12-01T10:47:34.018Z - API Handler called
+2025-12-01T10:47:34.020Z - Method: POST
+2025-12-01T10:47:34.023Z - Body: {"url":"https://jacekbranas.pl/"}

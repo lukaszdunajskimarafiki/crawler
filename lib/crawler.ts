@@ -1,0 +1,246 @@
+import fetch from 'node-fetch';
+import { parse } from 'node-html-parser';
+import { prisma } from './prisma';
+import { getDomainInfo } from './whois';
+import { getSSLInfo } from './ssl';
+
+const USER_AGENT = 'Mozilla/5.0 (compatible; SEOCrawler/1.0; +http://example.com/bot)';
+
+export async function checkRedirects(domain: string) {
+    const variants = [
+        `http://${domain}`,
+        `http://www.${domain}`,
+        `https://${domain}`,
+        `https://www.${domain}`
+    ];
+
+    const results = [];
+
+    for (const startUrl of variants) {
+        let currentUrl = startUrl;
+        const chain = [];
+        const visited = new Set<string>();
+        let loopDetected = false;
+        let status = 0;
+
+        try {
+            let redirectCount = 0;
+            const MAX_REDIRECTS = 10;
+
+            while (redirectCount < MAX_REDIRECTS) {
+                if (visited.has(currentUrl)) {
+                    loopDetected = true;
+                    break;
+                }
+                visited.add(currentUrl);
+                chain.push(currentUrl);
+
+                const response = await fetch(currentUrl, {
+                    method: 'HEAD',
+                    redirect: 'manual',
+                    headers: { 'User-Agent': USER_AGENT }
+                });
+
+                status = response.status;
+
+                if (status >= 300 && status < 400) {
+                    const location = response.headers.get('location');
+                    if (location) {
+                        currentUrl = new URL(location, currentUrl).href;
+                        redirectCount++;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if (redirectCount >= MAX_REDIRECTS) {
+                loopDetected = true;
+            }
+
+            results.push({
+                url: startUrl,
+                status,
+                chain,
+                loopDetected,
+                finalUrl: currentUrl
+            });
+
+        } catch (error) {
+            results.push({ url: startUrl, error: 'Failed to connect' });
+        }
+    }
+    return results;
+}
+
+
+
+export async function crawlDomain(domainUrl: string, domainId: number, userAgent: string = USER_AGENT) {
+    console.log(`Starting crawl for ${domainUrl}`);
+
+    // Perform WHOIS and SSL lookup
+    try {
+        const hostname = new URL(domainUrl).hostname.replace(/^www\./, '');
+        const whoisInfo = await getDomainInfo(hostname);
+        const sslInfo = await getSSLInfo(domainUrl);
+
+        await prisma.domain.update({
+            where: { id: domainId },
+            data: {
+                expiryDate: whoisInfo.expiryDate,
+                registrant: whoisInfo.registrant,
+                isOption: whoisInfo.isOption,
+                sslIssuer: sslInfo.issuer,
+                sslExpiry: sslInfo.expiry,
+                sslValid: sslInfo.valid
+            }
+        });
+    } catch (e) {
+        console.error('Failed to get WHOIS/SSL info', e);
+    }
+
+
+
+    let webpSupported = false;
+    const visited = new Set<string>();
+    const queue = [domainUrl];
+
+    await prisma.domain.update({
+        where: { id: domainId },
+        data: { status: 'crawling' }
+    });
+
+    while (queue.length > 0) {
+        const url = queue.shift();
+        if (!url || visited.has(url)) continue;
+        visited.add(url);
+
+        if (!url.startsWith(domainUrl)) continue;
+
+        console.log(`Crawling: ${url}`);
+
+        try {
+            const response = await fetch(url, {
+                headers: { 'User-Agent': userAgent }
+            });
+
+            if (!response.ok) {
+                console.log(`Failed to fetch ${url}: ${response.status}`);
+                await prisma.page.create({
+                    data: {
+                        url,
+                        domainId,
+                        statusCode: response.status,
+                    }
+                });
+                continue;
+            }
+
+            const html = await response.text();
+            const root = parse(html);
+            const statusCode = response.status;
+
+            const title = root.querySelector('title')?.text;
+            const multipleTitleTags = root.querySelectorAll('title').length > 1;
+            const metaDescription = root.querySelector('meta[name="description"]')?.getAttribute('content');
+            const canonical = root.querySelector('link[rel="canonical"]')?.getAttribute('href');
+
+            const h1s = root.querySelectorAll('h1').map((el) => el.text);
+            const h2s = root.querySelectorAll('h2').map((el) => el.text);
+
+            const page = await prisma.page.create({
+                data: {
+                    url,
+                    domainId,
+                    statusCode,
+                    title: title || null,
+                    metaDescription: metaDescription || null,
+                    canonical: canonical || null,
+                    h1s: JSON.stringify(h1s),
+                    h2s: JSON.stringify(h2s),
+                    multipleTitleTags,
+                }
+            });
+
+            const imagePromises = root.querySelectorAll('img').map(async (el) => {
+                const src = el.getAttribute('src');
+                if (src) {
+                    try {
+                        const absoluteSrc = new URL(src, url).href;
+                        let size = 0;
+                        try {
+                            const imgRes = await fetch(absoluteSrc, {
+                                method: 'HEAD',
+                                headers: {
+                                    'User-Agent': userAgent,
+                                    'Accept': 'image/webp,image/*,*/*;q=0.8'
+                                }
+                            });
+                            const contentLength = imgRes.headers.get('content-length');
+                            const contentType = imgRes.headers.get('content-type');
+
+                            if (contentLength) {
+                                size = Math.round(parseInt(contentLength) / 1024); // Size in KB
+                            }
+
+                            if (contentType && contentType.includes('image/webp')) {
+                                webpSupported = true;
+                            }
+                        } catch (e) {
+                            // Ignore fetch errors for images
+                        }
+
+                        await prisma.image.create({
+                            data: {
+                                url: absoluteSrc,
+                                pageId: page.id,
+                                size: size
+                            }
+                        });
+                    } catch (e) { }
+                }
+            });
+            await Promise.all(imagePromises);
+
+            root.querySelectorAll('a').forEach((el) => {
+                const href = el.getAttribute('href');
+                if (href) {
+                    try {
+                        const absoluteHref = new URL(href, url).href;
+
+                        // Exclude anchor links
+                        if (absoluteHref.includes('#')) {
+                            return;
+                        }
+
+                        if (!visited.has(absoluteHref) && absoluteHref.startsWith(domainUrl)) {
+                            queue.push(absoluteHref);
+                        }
+
+                        prisma.link.create({
+                            data: {
+                                url: absoluteHref,
+                                pageId: page.id,
+                            }
+                        }).catch(() => { });
+                    } catch (e) {
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error(`Failed to crawl ${url}`, error);
+        }
+    }
+
+    await prisma.domain.update({
+        where: { id: domainId },
+        data: {
+            status: 'completed',
+            webpSupported: webpSupported
+        }
+    });
+    console.log(`Finished crawl for ${domainUrl}`);
+}
