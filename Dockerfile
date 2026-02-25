@@ -1,6 +1,9 @@
 # Wybieramy obraz bazowy Node.js
 FROM node:18-alpine
 
+# Instalujemy zależności systemowe wymagane przez Prisma
+RUN apk add --no-cache openssl openssl-dev libc6-compat
+
 # Ustawiamy katalog roboczy
 WORKDIR /app
 
