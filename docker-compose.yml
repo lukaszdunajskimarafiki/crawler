@@ -5,18 +5,18 @@ services:
     container_name: crawler-web
     working_dir: /app
     environment:
-      # 'db' to nazwa serwisu poniżej, docker/podman rozwiąże to jako hostname
-      DATABASE_URL: "postgresql://postgres:tajnehaslo@db:5432/crawler_db?schema=public&connection_limit=20&pool_timeout=30"
+      DATABASE_URL: "postgresql://postgres:${DB_PASSWORD}@db:5432/crawler_db?schema=public&connection_limit=20&pool_timeout=30"
       NODE_ENV: "production"
       NEXT_PUBLIC_APP_URL: "https://diagnostyka.marafiki.pl"
+      SESSION_SECRET: "${SESSION_SECRET}"
       SMTP_HOST: "smtp.gmail.com"
       SMTP_PORT: "587"
-      SMTP_USER: "rafal.gadomski@marafiki.pl"
-      SMTP_PASS: "uvexgvvovwqvfxwp"
+      SMTP_USER: "${SMTP_USER}"
+      SMTP_PASS: "${SMTP_PASS}"
       SMTP_FROM_NAME: "SEO Crawler by Marafiki"
       SMTP_FROM_EMAIL: "info@marafiki.pl"
     ports:
-      - "3555:3000" # Aplikacja dostępna na porcie 3555 hosta
+      - "3555:3000"
     depends_on:
       - db
     restart: always
@@ -26,7 +26,7 @@ services:
     container_name: crawler-db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: tajnehaslo
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: crawler_db
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
