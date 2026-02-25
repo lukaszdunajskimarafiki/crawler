@@ -422,6 +422,13 @@ export default function Dashboard() {
                 <h1 className={styles.title}>Raport dla {data.url}</h1>
                 <div className={styles.status}>Status: {data.status}</div>
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+                    <button
+                        onClick={() => generateSeoReport(data)}
+                        className={styles.button}
+                        style={{ background: '#d32f2f', color: 'white' }}
+                    >
+                        📄 Pobierz PDF
+                    </button>
                     <a href={`/api/export/${id}`} className={styles.button} download>
                         Pobierz wyniki (JSON)
                     </a>
@@ -431,13 +438,6 @@ export default function Dashboard() {
                         style={{ background: '#111', color: 'white' }}
                     >
                         Nowy skan
-                    </button>
-                    <button
-                        onClick={() => generateSeoReport(data)}
-                        className={styles.button}
-                        style={{ background: '#d32f2f', color: 'white' }}
-                    >
-                        📄 Pobierz PDF
                     </button>
                 </div>
 

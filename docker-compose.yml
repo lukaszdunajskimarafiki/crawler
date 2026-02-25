@@ -6,7 +6,7 @@ services:
     working_dir: /app
     environment:
       # 'db' to nazwa serwisu poniżej, docker/podman rozwiąże to jako hostname
-      DATABASE_URL: "postgresql://postgres:tajnehaslo@db:5432/crawler_db?schema=public"
+      DATABASE_URL: "postgresql://postgres:tajnehaslo@db:5432/crawler_db?schema=public&connection_limit=20&pool_timeout=30"
       NODE_ENV: "production"
       SMTP_HOST: "smtp.gmail.com"
       SMTP_PORT: "587"
