@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '@/styles/App.module.css';
 
 interface AppLayoutProps {
@@ -18,6 +18,8 @@ export default function AppLayout({
     onTabChange,
     children,
 }: AppLayoutProps) {
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
         <div className={styles.layout}>
             <header className={styles.header}>
@@ -40,7 +42,28 @@ export default function AppLayout({
                         Wyloguj
                     </button>
                 </div>
+                <button
+                    className={styles.hamburger}
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    aria-label="Menu"
+                >
+                    {menuOpen ? '✕' : '☰'}
+                </button>
             </header>
+
+            {menuOpen && (
+                <div className={styles.mobileMenu}>
+                    <span className={styles.mobileEmail}>{email}</span>
+                    {isAdmin && (
+                        <a href="/admin" className={styles.mobileMenuItem}>
+                            Panel admina
+                        </a>
+                    )}
+                    <button onClick={onLogout} className={styles.mobileMenuItem}>
+                        Wyloguj
+                    </button>
+                </div>
+            )}
 
             <nav className={styles.tabs}>
                 <button

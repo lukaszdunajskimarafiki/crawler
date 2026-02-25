@@ -124,11 +124,11 @@ export default function ScanHistory() {
                         {scans.map(scan => (
                             <>
                                 <tr key={scan.id}>
-                                    <td className={styles.urlCell}>{scan.url}</td>
-                                    <td>{getStatusBadge(scan.status)}</td>
-                                    <td>{scan.pagesScanned}</td>
-                                    <td>{formatDate(scan.createdAt)}</td>
-                                    <td className={styles.actionsCell}>
+                                    <td className={styles.urlCell} data-label="URL">{scan.url}</td>
+                                    <td data-label="Status">{getStatusBadge(scan.status)}</td>
+                                    <td data-label="Stron">{scan.pagesScanned}</td>
+                                    <td data-label="Data">{formatDate(scan.createdAt)}</td>
+                                    <td className={styles.actionsCell} data-label="Akcje">
                                         {scan.status === 'completed' && (
                                             <>
                                                 <button
