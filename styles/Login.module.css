@@ -19,7 +19,23 @@
 
 .logo {
     height: 120px;
+    max-width: 80%;
+    object-fit: contain;
     margin-bottom: 2rem;
+}
+
+@media (max-width: 480px) {
+    .logo {
+        height: 80px;
+    }
+
+    .card {
+        padding: 2rem 1.5rem;
+    }
+
+    .title {
+        font-size: 1.4rem;
+    }
 }
 
 .title {

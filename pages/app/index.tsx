@@ -23,7 +23,7 @@ export default function AppPage() {
     return (
         <>
             <Head>
-                <title>SEO Crawler — Marafiki</title>
+                <title>Diagnostyka strony — Marafiki</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>
             <AppLayout

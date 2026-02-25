@@ -5,7 +5,7 @@ export default function PolitykaPrywatnosci() {
     return (
         <>
             <Head>
-                <title>Polityka Prywatności — SEO Crawler by Marafiki</title>
+                <title>Polityka Prywatności — Diagnostyka strony by Marafiki</title>
             </Head>
             <main className={styles.page} style={{ alignItems: 'flex-start', padding: '2rem' }}>
                 <div style={{

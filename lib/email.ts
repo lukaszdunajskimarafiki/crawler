@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const FROM_NAME = process.env.SMTP_FROM_NAME || 'SEO Crawler by Marafiki';
+const FROM_NAME = process.env.SMTP_FROM_NAME || 'Diagnostyka strony by Marafiki';
 const FROM_EMAIL = process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || '';
 
 export async function sendLoginCode(
@@ -38,7 +38,7 @@ export async function sendLoginCode(
                              alt="Marafiki" style="height: 50px;" />
                     </div>
                     <h2 style="color: #111; text-align: center; margin-bottom: 0.5rem;">
-                        SEO Crawler — Kod logowania
+                        Diagnostyka strony — Kod logowania
                     </h2>
                     <p style="color: #666; text-align: center; margin-bottom: 2rem;">
                         Użyj poniższego kodu, aby się zalogować
@@ -120,7 +120,7 @@ export async function sendScanCompletedEmail(
                     </div>
 
                     <p style="color: #999; font-size: 0.8rem; text-align: center; margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                        Ta wiadomość została wysłana przez SEO Crawler by Marafiki.<br/>
+                        Ta wiadomość została wysłana przez Diagnostyka strony by Marafiki.<br/>
                         Aby zrezygnować z powiadomień, zmień ustawienia w zakładce "Zgody" w aplikacji.
                     </p>
                 </div>

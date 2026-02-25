@@ -153,12 +153,12 @@ export default function ApiDocs() {
     return (
         <>
             <Head>
-                <title>API Documentation — SEO Crawler</title>
-                <meta name="description" content="API Documentation for SEO Crawler" />
+                <title>API Documentation — Diagnostyka strony</title>
+                <meta name="description" content="API Documentation for Diagnostyka strony" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
             </Head>
             <main style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
-                <h1 style={{ borderBottom: '3px solid #333', paddingBottom: '0.5rem' }}>📡 SEO Crawler — API Documentation</h1>
+                <h1 style={{ borderBottom: '3px solid #333', paddingBottom: '0.5rem' }}>📡 Diagnostyka strony — API Documentation</h1>
 
                 <section style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#f0f7ff', borderRadius: '8px', border: '1px solid #cce0ff' }}>
                     <h2 style={{ marginTop: 0 }}>Szybki start</h2>
@@ -256,7 +256,7 @@ GET /api/v1/report/1  →  { "summary": {...}, "pages": [...] }`}
                 ))}
 
                 <footer style={{ marginTop: '3rem', padding: '1rem', borderTop: '1px solid #eee', color: '#999', fontSize: '0.85rem', textAlign: 'center' }}>
-                    SEO Crawler API v1 — <a href="/" style={{ color: '#0070f3' }}>Powrót do aplikacji</a>
+                    Diagnostyka strony API v1 — <a href="/" style={{ color: '#0070f3' }}>Powrót do aplikacji</a>
                 </footer>
             </main>
         </>

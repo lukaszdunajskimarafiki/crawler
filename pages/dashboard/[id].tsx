@@ -394,7 +394,7 @@ export default function Dashboard() {
             <header className={styles.dashboardHeader}>
                 <div className={styles.headerLeft}>
                     <img src="/logo-marafiki.png" alt="Marafiki" className={styles.logo} />
-                    <span className={styles.headerTitle}>SEO Crawler — Raport</span>
+                    <span className={styles.headerTitle}>Diagnostyka strony — Raport</span>
                 </div>
                 <div className={styles.headerRight}>
                     <a href="/app?tab=history" className={styles.backLink}>← Wróć do aplikacji</a>

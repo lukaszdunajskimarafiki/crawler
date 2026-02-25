@@ -115,7 +115,7 @@ export default function AdminPanel() {
     return (
         <>
             <Head>
-                <title>Panel admina — SEO Crawler</title>
+                <title>Panel admina — Diagnostyka strony</title>
             </Head>
             <div className={styles.adminPage}>
                 <header className={styles.adminHeader}>

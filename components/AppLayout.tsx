@@ -27,7 +27,7 @@ export default function AppLayout({
                         alt="Marafiki"
                         className={styles.logo}
                     />
-                    <span className={styles.appTitle}>SEO Crawler</span>
+                    <span className={styles.appTitle}>Diagnostyka strony</span>
                 </div>
                 <div className={styles.headerRight}>
                     <span className={styles.userEmail}>{email}</span>

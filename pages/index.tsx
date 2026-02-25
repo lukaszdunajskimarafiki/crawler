@@ -86,8 +86,8 @@ export default function LoginPage() {
     return (
         <>
             <Head>
-                <title>Logowanie — SEO Crawler by Marafiki</title>
-                <meta name="description" content="SEO Crawler - Login" />
+                <title>Logowanie — Diagnostyka strony by Marafiki</title>
+                <meta name="description" content="Diagnostyka strony - Login" />
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1"
@@ -100,12 +100,21 @@ export default function LoginPage() {
                         alt="Marafiki"
                         className={styles.logo}
                     />
-                    <h1 className={styles.title}>SEO Crawler</h1>
-                    <p className={styles.subtitle}>
-                        {step === 'email'
-                            ? 'Zaloguj się, aby rozpocząć skanowanie'
-                            : `Kod weryfikacyjny wysłany na ${email}`}
-                    </p>
+                    <h1 className={styles.title}>Diagnostyka strony</h1>
+                    {step === 'email' ? (
+                        <>
+                            <p className={styles.subtitle} style={{ fontWeight: 700, marginBottom: '0.25rem' }}>
+                                Sprawdź kondycję swojej strony!
+                            </p>
+                            <p className={styles.subtitle} style={{ fontSize: '0.9rem', marginTop: 0 }}>
+                                Zaloguj się, aby zobaczyć błędy techniczne, problemy z widocznością i elementy wymagające poprawy.
+                            </p>
+                        </>
+                    ) : (
+                        <p className={styles.subtitle}>
+                            Kod weryfikacyjny wysłany na {email}
+                        </p>
+                    )}
 
                     {step === 'email' ? (
                         <form
