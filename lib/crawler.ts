@@ -38,8 +38,9 @@ export async function checkRedirects(domain: string) {
                 const response = await fetch(currentUrl, {
                     method: 'HEAD',
                     redirect: 'manual',
-                    headers: { 'User-Agent': USER_AGENT }
-                });
+                    headers: { 'User-Agent': USER_AGENT },
+                    timeout: 10000, // 10s timeout per redirect check
+                } as any);
 
                 status = response.status;
 
