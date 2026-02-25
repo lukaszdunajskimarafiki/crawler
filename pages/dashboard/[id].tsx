@@ -1,13 +1,12 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
 import { generateSeoReport } from '@/lib/generatePdf'
 import styles from '@/styles/Dashboard.module.css'
 
 export default function Dashboard() {
     const router = useRouter()
     const { id } = router.query
-    const { user, logout } = useAuth()
+    const [user, setUser] = useState<any>(null)
     const [data, setData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     // Pages state
