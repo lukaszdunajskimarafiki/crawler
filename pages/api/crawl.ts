@@ -33,35 +33,14 @@ export default async function handler(
             const domainHost = new URL(url).hostname;
             const redirectResults = await checkRedirects(domainHost);
 
-            let domainRecord = await prisma.domain.findUnique({
-                where: { url: url }
+            const domainRecord = await prisma.domain.create({
+                data: {
+                    url: url,
+                    status: 'pending',
+                    redirects: JSON.stringify(redirectResults),
+                    userId: userId,
+                }
             });
-
-            if (domainRecord) {
-                // Delete existing pages to start fresh
-                await prisma.page.deleteMany({
-                    where: { domainId: domainRecord.id }
-                });
-
-                domainRecord = await prisma.domain.update({
-                    where: { id: domainRecord.id },
-                    data: {
-                        status: 'pending',
-                        redirects: JSON.stringify(redirectResults),
-                        webpSupported: false,
-                        userId: userId,
-                    }
-                });
-            } else {
-                domainRecord = await prisma.domain.create({
-                    data: {
-                        url: url,
-                        status: 'pending',
-                        redirects: JSON.stringify(redirectResults),
-                        userId: userId,
-                    }
-                });
-            }
 
             // Add to queue instead of directly calling crawlDomain
             const result = await crawlQueue.add(url, domainRecord.id, userAgent);

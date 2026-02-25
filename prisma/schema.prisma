@@ -53,7 +53,7 @@ model ApiKey {
 
 model Domain {
   id        Int      @id @default(autoincrement())
-  url       String   @unique
+  url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   status    String   @default("pending")
