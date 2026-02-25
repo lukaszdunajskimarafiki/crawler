@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { checkRedirects } from '@/lib/crawler'
 import { crawlQueue } from '@/lib/crawlQueue'
 import { parseSession } from '@/lib/session'
+import crypto from 'crypto'
 
 export default async function handler(
     req: NextApiRequest,
@@ -39,6 +40,7 @@ export default async function handler(
                     status: 'pending',
                     redirects: JSON.stringify(redirectResults),
                     userId: userId,
+                    shareToken: crypto.randomBytes(16).toString('hex'),
                 }
             });
 

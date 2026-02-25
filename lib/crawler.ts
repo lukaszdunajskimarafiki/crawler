@@ -269,7 +269,8 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                     domain.user.email,
                     domainUrl,
                     domainId,
-                    domain._count.pages
+                    domain._count.pages,
+                    domain.shareToken || undefined
                 );
             }
         } catch (emailErr) {

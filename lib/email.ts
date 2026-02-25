@@ -67,7 +67,8 @@ export async function sendScanCompletedEmail(
     email: string,
     domainUrl: string,
     domainId: number,
-    pagesCount: number
+    pagesCount: number,
+    shareToken?: string
 ): Promise<boolean> {
     console.log(`\n[Email] Scan completed notification for ${email}: ${domainUrl}`);
 
@@ -77,7 +78,9 @@ export async function sendScanCompletedEmail(
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://diagnostyka.marafiki.pl';
-    const reportUrl = `${appUrl}/dashboard/${domainId}`;
+    const reportUrl = shareToken
+        ? `${appUrl}/dashboard/${domainId}?token=${shareToken}`
+        : `${appUrl}/dashboard/${domainId}`;
 
     try {
         await transporter.sendMail({

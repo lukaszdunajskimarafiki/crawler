@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { prisma } from '@/lib/prisma';
 import { validateApiKey } from '@/lib/apiAuth';
 import { crawlDomain, checkRedirects } from '@/lib/crawler';
+import crypto from 'crypto';
 
 export default async function handler(
     req: NextApiRequest,
@@ -34,6 +35,7 @@ export default async function handler(
                 url: url,
                 status: 'pending',
                 redirects: JSON.stringify(redirectResults),
+                shareToken: crypto.randomBytes(16).toString('hex'),
             }
         });
 

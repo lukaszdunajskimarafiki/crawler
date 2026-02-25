@@ -5,7 +5,7 @@ import styles from '@/styles/Dashboard.module.css'
 
 export default function Dashboard() {
     const router = useRouter()
-    const { id } = router.query
+    const { id, token } = router.query
     const [user, setUser] = useState<any>(null)
     const [data, setData] = useState<any>(null)
     const [loading, setLoading] = useState(true)
@@ -366,7 +366,8 @@ export default function Dashboard() {
 
         const fetchData = async () => {
             try {
-                const res = await fetch(`/api/domain/${id}`)
+                const tokenParam = token ? `?token=${token}` : '';
+                const res = await fetch(`/api/domain/${id}${tokenParam}`)
                 const json = await res.json()
                 setData(json)
             } catch (e) {
@@ -383,7 +384,7 @@ export default function Dashboard() {
             }
         }, 5000)
         return () => clearInterval(interval)
-    }, [id, data?.status])
+    }, [id, token, data?.status])
 
     if (loading) return <div className={styles.container}>Ładowanie...</div>
     if (!data) return <div className={styles.container}>Nie znaleziono</div>
