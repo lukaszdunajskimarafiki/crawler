@@ -562,7 +562,7 @@ function getRecommendations(data: ReportData, pages: any[], htmlPages: any[], pa
         });
     });
     if (largeImages.length > 0) {
-        recs.push({ score: 'low', title: 'Optymalizacja du\u017cych obraz\u00f3w', desc: `${largeImages.length} obraz\u00f3w jest wi\u0119kszych ni\u017c 200KB. Nale\u017cy je skompresowa\u0107.`, urls: [...new Set(largeImages)].slice(0, 10) });
+        recs.push({ score: 'low', title: 'Optymalizacja du\u017cych obraz\u00f3w', desc: `${largeImages.length} obraz\u00f3w jest wi\u0119kszych ni\u017c 200KB. Nale\u017cy je skompresowa\u0107.`, urls: Array.from(new Set(largeImages)).slice(0, 10) });
     }
 
     const descCounts: any = {};
