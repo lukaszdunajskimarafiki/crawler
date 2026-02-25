@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { prisma } from '@/lib/prisma'
-import { crawlDomain, checkRedirects } from '@/lib/crawler'
+import { checkRedirects } from '@/lib/crawler'
+import { crawlQueue } from '@/lib/crawlQueue'
+import { parseSession } from '@/lib/session'
 
 export default async function handler(
     req: NextApiRequest,
@@ -9,10 +11,22 @@ export default async function handler(
     if (req.method === 'POST') {
         const { url, userAgent } = req.body;
 
+        // Get user from session (optional — API v1 uses API keys)
+        const session = parseSession(req.headers.cookie);
+        const userId = session?.userId || null;
+
         try {
             new URL(url);
         } catch (e) {
             return res.status(400).json({ error: 'Invalid URL' });
+        }
+
+        // Block scanning if this domain is already being crawled
+        if (crawlQueue.isRunning(url)) {
+            return res.status(409).json({
+                error: 'Ta domena jest już w trakcie skanowania. Poczekaj na zakończenie.',
+                runningDomainId: crawlQueue.getRunningId(url),
+            });
         }
 
         try {
@@ -34,7 +48,8 @@ export default async function handler(
                     data: {
                         status: 'pending',
                         redirects: JSON.stringify(redirectResults),
-                        webpSupported: false // Reset
+                        webpSupported: false,
+                        userId: userId,
                     }
                 });
             } else {
@@ -42,15 +57,21 @@ export default async function handler(
                     data: {
                         url: url,
                         status: 'pending',
-                        redirects: JSON.stringify(redirectResults)
+                        redirects: JSON.stringify(redirectResults),
+                        userId: userId,
                     }
                 });
             }
 
-            // Start crawling in background
-            crawlDomain(url, domainRecord.id, userAgent);
+            // Add to queue instead of directly calling crawlDomain
+            const result = await crawlQueue.add(url, domainRecord.id, userAgent);
 
-            res.status(200).json({ id: domainRecord.id, redirects: redirectResults });
+            res.status(200).json({
+                id: domainRecord.id,
+                redirects: redirectResults,
+                queueStatus: result, // 'started' or 'queued'
+                queue: crawlQueue.getStatus(),
+            });
         } catch (error) {
             console.error('API Error:', error);
             res.status(500).json({ error: 'Internal Server Error' });

@@ -1,89 +1,205 @@
-import Head from 'next/head'
-import { useState } from 'react'
-import styles from '@/styles/Home.module.css'
-import { useRouter } from 'next/router'
+import Head from 'next/head';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import styles from '@/styles/Login.module.css';
 
-const USER_AGENTS = [
-    { name: 'Chrome on Windows', value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-    { name: 'Chrome on Mac', value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-    { name: 'Firefox on Windows', value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0' },
-    { name: 'Firefox on Mac', value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0' },
-    { name: 'Safari on Mac', value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15' },
-    { name: 'Edge on Windows', value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0' },
-    { name: 'Chrome on Android', value: 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36' },
-    { name: 'Safari on iPhone', value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1' },
-    { name: 'Googlebot', value: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' },
-    { name: 'Bingbot', value: 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)' },
-];
+type Step = 'email' | 'code';
 
-export default function Home() {
-    const [url, setUrl] = useState('')
-    const [userAgent, setUserAgent] = useState(USER_AGENTS[8].value)
-    const [error, setError] = useState('')
-    const [loading, setLoading] = useState(false)
-    const router = useRouter()
+export default function LoginPage() {
+    const [step, setStep] = useState<Step>('email');
+    const [email, setEmail] = useState('');
+    const [code, setCode] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [checkingSession, setCheckingSession] = useState(true);
+    const [privacyAccepted, setPrivacyAccepted] = useState(false);
+    const [marketingAccepted, setMarketingAccepted] = useState(false);
+    const router = useRouter();
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError('')
-        setLoading(true)
+    // Redirect if already logged in
+    useEffect(() => {
+        fetch('/api/auth/me')
+            .then(res => {
+                if (res.ok) router.replace('/app');
+            })
+            .finally(() => setCheckingSession(false));
+    }, []);
+
+    const handleSendCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+
+        if (!privacyAccepted || !marketingAccepted) {
+            setError('Musisz zaakceptować obie zgody, aby kontynuować.');
+            return;
+        }
+
+        setLoading(true);
 
         try {
-            const res = await fetch('/api/crawl', {
+            const res = await fetch('/api/auth/send-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, userAgent }),
-            })
+                body: JSON.stringify({ email, privacyAccepted, marketingAccepted }),
+            });
 
-            if (!res.ok) {
-                throw new Error('Failed to start crawl')
-            }
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Error');
 
-            const data = await res.json()
-            router.push(`/dashboard/${data.id}`)
-        } catch (err) {
-            setError('An error occurred. Please check the URL.')
+            setStep('code');
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error ? err.message : 'An error occurred';
+            setError(message);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
+
+    const handleVerifyCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const res = await fetch('/api/auth/verify-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Invalid code');
+
+            router.push('/app');
+        } catch (err: unknown) {
+            const message =
+                err instanceof Error ? err.message : 'An error occurred';
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (checkingSession) return null;
 
     return (
         <>
             <Head>
-                <title>SEO Crawler</title>
-                <meta name="description" content="SEO Verification Tool" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.ico" />
+                <title>Logowanie — SEO Crawler by Marafiki</title>
+                <meta name="description" content="SEO Crawler - Login" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
             </Head>
-            <main className={styles.container}>
-                <h1 className={styles.title}>SEO Crawler</h1>
-                <form onSubmit={handleSubmit} className={styles.form}>
-                    <input
-                        type="url"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="https://przyklad.com"
-                        required
-                        className={styles.input}
+            <main className={styles.page}>
+                <div className={styles.card}>
+                    <img
+                        src="/logo-marafiki.png"
+                        alt="Marafiki"
+                        className={styles.logo}
                     />
-                    <select
-                        value={userAgent}
-                        onChange={(e) => setUserAgent(e.target.value)}
-                        className={styles.select}
-                    >
-                        {USER_AGENTS.map((ua) => (
-                            <option key={ua.name} value={ua.value}>
-                                {ua.name}
-                            </option>
-                        ))}
-                    </select>
-                    <button type="submit" disabled={loading} className={styles.button}>
-                        {loading ? 'Rozpoczynanie...' : 'Analizuj'}
-                    </button>
-                </form>
-                {error && <p className={styles.error}>{error}</p>}
+                    <h1 className={styles.title}>SEO Crawler</h1>
+                    <p className={styles.subtitle}>
+                        {step === 'email'
+                            ? 'Zaloguj się, aby rozpocząć skanowanie'
+                            : `Kod weryfikacyjny wysłany na ${email}`}
+                    </p>
+
+                    {step === 'email' ? (
+                        <form
+                            onSubmit={handleSendCode}
+                            className={styles.form}
+                        >
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                placeholder="twoj@email.pl"
+                                required
+                                className={styles.input}
+                                autoFocus
+                            />
+
+                            <label className={styles.checkboxLabel}>
+                                <input
+                                    type="checkbox"
+                                    checked={privacyAccepted}
+                                    onChange={e => setPrivacyAccepted(e.target.checked)}
+                                    className={styles.checkbox}
+                                />
+                                <span>
+                                    Akceptuję{' '}
+                                    <a href="/polityka-prywatnosci" target="_blank" className={styles.link}>
+                                        politykę prywatności
+                                    </a>
+                                    {' '}*
+                                </span>
+                            </label>
+
+                            <label className={styles.checkboxLabel}>
+                                <input
+                                    type="checkbox"
+                                    checked={marketingAccepted}
+                                    onChange={e => setMarketingAccepted(e.target.checked)}
+                                    className={styles.checkbox}
+                                />
+                                <span>
+                                    Wyrażam zgodę na komunikację e-mailową i marketingową{' '}*
+                                </span>
+                            </label>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={styles.button}
+                            >
+                                {loading
+                                    ? 'Wysyłanie...'
+                                    : 'Wyślij kod logowania'}
+                            </button>
+                        </form>
+                    ) : (
+                        <form
+                            onSubmit={handleVerifyCode}
+                            className={styles.form}
+                        >
+                            <input
+                                type="text"
+                                value={code}
+                                onChange={e => setCode(e.target.value)}
+                                placeholder="6-cyfrowy kod"
+                                required
+                                maxLength={6}
+                                pattern="[0-9]{6}"
+                                className={styles.codeInput}
+                                autoFocus
+                            />
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={styles.button}
+                            >
+                                {loading ? 'Weryfikacja...' : 'Zaloguj się'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setStep('email');
+                                    setCode('');
+                                    setError('');
+                                }}
+                                className={styles.backLink}
+                            >
+                                ← Zmień adres email
+                            </button>
+                        </form>
+                    )}
+
+                    {error && <p className={styles.error}>{error}</p>}
+                </div>
             </main>
         </>
-    )
+    );
 }

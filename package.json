@@ -15,15 +15,19 @@
   "dependencies": {
     "@prisma/client": "^3.15.2",
     "@types/node-fetch": "^2.6.13",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "next": "^13.1.6",
     "node-fetch": "^2.7.0",
     "node-html-parser": "^7.0.1",
+    "nodemailer": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "whois-parsed": "^1.0.14"
   },
   "devDependencies": {
     "@types/node": "^14.18.63",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^18.3.27",
     "@types/react-dom": "^18.3.7",
     "prisma": "^3.15.2",

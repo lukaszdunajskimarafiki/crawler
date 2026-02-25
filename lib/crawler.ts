@@ -112,135 +112,170 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
         data: { status: 'crawling' }
     });
 
-    while (queue.length > 0) {
-        const url = queue.shift();
-        if (!url || visited.has(url)) continue;
-        visited.add(url);
+    try {
+        while (queue.length > 0) {
+            const url = queue.shift();
+            if (!url || visited.has(url)) continue;
+            visited.add(url);
 
-        if (!url.startsWith(domainUrl)) continue;
+            if (!url.startsWith(domainUrl)) continue;
 
-        console.log(`Crawling: ${url}`);
+            console.log(`Crawling: ${url}`);
 
-        try {
-            const response = await fetch(url, {
-                headers: { 'User-Agent': userAgent }
-            });
+            try {
+                const response = await fetch(url, {
+                    headers: { 'User-Agent': userAgent },
+                    signal: AbortSignal.timeout(30000), // 30s timeout per page
+                });
 
-            if (!response.ok) {
-                console.log(`Failed to fetch ${url}: ${response.status}`);
-                await prisma.page.create({
+                if (!response.ok) {
+                    console.log(`Failed to fetch ${url}: ${response.status}`);
+                    await prisma.page.create({
+                        data: {
+                            url,
+                            domainId,
+                            statusCode: response.status,
+                        }
+                    });
+                    continue;
+                }
+
+                const html = await response.text();
+                const root = parse(html);
+                const statusCode = response.status;
+
+                // Check noindex: meta robots tag + X-Robots-Tag header
+                const metaRobots = root.querySelector('meta[name="robots"]')?.getAttribute('content')?.toLowerCase() || '';
+                const metaGooglebot = root.querySelector('meta[name="googlebot"]')?.getAttribute('content')?.toLowerCase() || '';
+                const xRobotsTag = (response.headers.get('x-robots-tag') || '').toLowerCase();
+                const noindex = metaRobots.includes('noindex') || metaGooglebot.includes('noindex') || xRobotsTag.includes('noindex');
+
+                const title = root.querySelector('title')?.text;
+                const multipleTitleTags = root.querySelectorAll('title').length > 1;
+                const metaDescription = root.querySelector('meta[name="description"]')?.getAttribute('content');
+                const canonical = root.querySelector('link[rel="canonical"]')?.getAttribute('href');
+
+                const h1s = root.querySelectorAll('h1').map((el) => el.text);
+                const h2s = root.querySelectorAll('h2').map((el) => el.text);
+
+                const page = await prisma.page.create({
                     data: {
                         url,
                         domainId,
-                        statusCode: response.status,
+                        statusCode,
+                        title: title || null,
+                        metaDescription: metaDescription || null,
+                        canonical: canonical || null,
+                        h1s: JSON.stringify(h1s),
+                        h2s: JSON.stringify(h2s),
+                        multipleTitleTags,
+                        noindex,
                     }
                 });
-                continue;
-            }
 
-            const html = await response.text();
-            const root = parse(html);
-            const statusCode = response.status;
-
-            const title = root.querySelector('title')?.text;
-            const multipleTitleTags = root.querySelectorAll('title').length > 1;
-            const metaDescription = root.querySelector('meta[name="description"]')?.getAttribute('content');
-            const canonical = root.querySelector('link[rel="canonical"]')?.getAttribute('href');
-
-            const h1s = root.querySelectorAll('h1').map((el) => el.text);
-            const h2s = root.querySelectorAll('h2').map((el) => el.text);
-
-            const page = await prisma.page.create({
-                data: {
-                    url,
-                    domainId,
-                    statusCode,
-                    title: title || null,
-                    metaDescription: metaDescription || null,
-                    canonical: canonical || null,
-                    h1s: JSON.stringify(h1s),
-                    h2s: JSON.stringify(h2s),
-                    multipleTitleTags,
-                }
-            });
-
-            const imagePromises = root.querySelectorAll('img').map(async (el) => {
-                const src = el.getAttribute('src');
-                if (src) {
-                    try {
-                        const absoluteSrc = new URL(src, url).href;
-                        let size = 0;
+                const imagePromises = root.querySelectorAll('img').map(async (el) => {
+                    const src = el.getAttribute('src');
+                    if (src) {
                         try {
-                            const imgRes = await fetch(absoluteSrc, {
-                                method: 'HEAD',
-                                headers: {
-                                    'User-Agent': userAgent,
-                                    'Accept': 'image/webp,image/*,*/*;q=0.8'
+                            const absoluteSrc = new URL(src, url).href;
+                            let size = 0;
+                            try {
+                                const imgRes = await fetch(absoluteSrc, {
+                                    method: 'HEAD',
+                                    headers: {
+                                        'User-Agent': userAgent,
+                                        'Accept': 'image/webp,image/*,*/*;q=0.8'
+                                    }
+                                });
+                                const contentLength = imgRes.headers.get('content-length');
+                                const contentType = imgRes.headers.get('content-type');
+
+                                if (contentLength) {
+                                    size = Math.round(parseInt(contentLength) / 1024); // Size in KB
+                                }
+
+                                if (contentType && contentType.includes('image/webp')) {
+                                    webpSupported = true;
+                                }
+                            } catch (e) {
+                                // Ignore fetch errors for images
+                            }
+
+                            await prisma.image.create({
+                                data: {
+                                    url: absoluteSrc,
+                                    pageId: page.id,
+                                    size: size
                                 }
                             });
-                            const contentLength = imgRes.headers.get('content-length');
-                            const contentType = imgRes.headers.get('content-type');
-
-                            if (contentLength) {
-                                size = Math.round(parseInt(contentLength) / 1024); // Size in KB
-                            }
-
-                            if (contentType && contentType.includes('image/webp')) {
-                                webpSupported = true;
-                            }
-                        } catch (e) {
-                            // Ignore fetch errors for images
-                        }
-
-                        await prisma.image.create({
-                            data: {
-                                url: absoluteSrc,
-                                pageId: page.id,
-                                size: size
-                            }
-                        });
-                    } catch (e) { }
-                }
-            });
-            await Promise.all(imagePromises);
-
-            root.querySelectorAll('a').forEach((el) => {
-                const href = el.getAttribute('href');
-                if (href) {
-                    try {
-                        const absoluteHref = new URL(href, url).href;
-
-                        // Exclude anchor links
-                        if (absoluteHref.includes('#')) {
-                            return;
-                        }
-
-                        if (!visited.has(absoluteHref) && absoluteHref.startsWith(domainUrl)) {
-                            queue.push(absoluteHref);
-                        }
-
-                        prisma.link.create({
-                            data: {
-                                url: absoluteHref,
-                                pageId: page.id,
-                            }
-                        }).catch(() => { });
-                    } catch (e) {
+                        } catch (e) { }
                     }
-                }
+                });
+                await Promise.all(imagePromises);
+
+                root.querySelectorAll('a').forEach((el) => {
+                    const href = el.getAttribute('href');
+                    if (href) {
+                        try {
+                            const absoluteHref = new URL(href, url).href;
+
+                            // Exclude anchor links
+                            if (absoluteHref.includes('#')) {
+                                return;
+                            }
+
+                            if (!visited.has(absoluteHref) && absoluteHref.startsWith(domainUrl)) {
+                                queue.push(absoluteHref);
+                            }
+
+                            prisma.link.create({
+                                data: {
+                                    url: absoluteHref,
+                                    pageId: page.id,
+                                }
+                            }).catch(() => { });
+                        } catch (e) {
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error(`Failed to crawl ${url}`, error);
+            }
+        }
+
+        await prisma.domain.update({
+            where: { id: domainId },
+            data: {
+                status: 'completed',
+                webpSupported: webpSupported
+            }
+        });
+        console.log(`Finished crawl for ${domainUrl}`);
+
+        // Send email notification to domain owner
+        try {
+            const domain = await prisma.domain.findUnique({
+                where: { id: domainId },
+                include: { user: true, _count: { select: { pages: true } } }
             });
-
-        } catch (error) {
-            console.error(`Failed to crawl ${url}`, error);
+            if (domain?.user?.email && domain.user.marketingAccepted) {
+                const { sendScanCompletedEmail } = await import('./email');
+                await sendScanCompletedEmail(
+                    domain.user.email,
+                    domainUrl,
+                    domainId,
+                    domain._count.pages
+                );
+            }
+        } catch (emailErr) {
+            console.error('Failed to send scan notification email:', emailErr);
         }
+    } catch (fatalError) {
+        console.error(`Fatal error during crawl of ${domainUrl}:`, fatalError);
+        await prisma.domain.update({
+            where: { id: domainId },
+            data: { status: 'error' }
+        }).catch(() => { });
     }
-
-    await prisma.domain.update({
-        where: { id: domainId },
-        data: {
-            status: 'completed',
-            webpSupported: webpSupported
-        }
-    });
-    console.log(`Finished crawl for ${domainUrl}`);
 }

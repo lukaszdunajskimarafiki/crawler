@@ -3,14 +3,50 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
+  id                    Int           @id @default(autoincrement())
+  email                 String        @unique
+  isAdmin               Boolean       @default(false)
+  active                Boolean       @default(true)
+  privacyAccepted       Boolean       @default(false)
+  privacyAcceptedAt     DateTime?
+  marketingAccepted     Boolean       @default(false)
+  marketingAcceptedAt   DateTime?
+  marketingRevokedAt    DateTime?
+  createdAt             DateTime      @default(now())
+  domains               Domain[]
+  loginCodes            LoginCode[]
+  consentLogs           ConsentLog[]
+}
+
+model ConsentLog {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "privacy" | "marketing"
+  action    String   // "accepted" | "revoked"
+  createdAt DateTime @default(now())
+}
+
+model LoginCode {
+  id        Int      @id @default(autoincrement())
+  code      String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
 }
 
@@ -19,10 +55,12 @@ model Domain {
   url       String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  status    String   @default("pending") // pending, crawling, completed, error
+  status    String   @default("pending")
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
   pages     Page[]
   links     Link[]
-  redirects  String? // JSON string storing redirect check results
+  redirects  String?
   expiryDate String?
   registrant String?
   isOption   Boolean @default(false)
@@ -41,9 +79,10 @@ model Page {
   title           String?
   metaDescription String?
   canonical       String?
-  h1s             String?  // JSON string
-  h2s             String?  // JSON string
+  h1s             String?
+  h2s             String?
   multipleTitleTags Boolean @default(false)
+  noindex         Boolean @default(false)
   images          Image[]
   links           Link[]
   crawledAt       DateTime @default(now())
