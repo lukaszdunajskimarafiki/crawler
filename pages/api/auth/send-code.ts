@@ -49,11 +49,11 @@ export default async function handler(
         });
 
         // Log consent acceptance
-        await prisma.consentLog.createMany({
-            data: [
-                { userId: user.id, type: 'privacy', action: 'accepted' },
-                { userId: user.id, type: 'marketing', action: 'accepted' },
-            ],
+        await prisma.consentLog.create({
+            data: { userId: user.id, type: 'privacy', action: 'accepted' },
+        });
+        await prisma.consentLog.create({
+            data: { userId: user.id, type: 'marketing', action: 'accepted' },
         });
     } else {
         // For existing users who haven't accepted yet, require consent
@@ -76,11 +76,11 @@ export default async function handler(
             });
 
             // Log consent acceptance
-            await prisma.consentLog.createMany({
-                data: [
-                    { userId: user.id, type: 'privacy', action: 'accepted' },
-                    { userId: user.id, type: 'marketing', action: 'accepted' },
-                ],
+            await prisma.consentLog.create({
+                data: { userId: user.id, type: 'privacy', action: 'accepted' },
+            });
+            await prisma.consentLog.create({
+                data: { userId: user.id, type: 'marketing', action: 'accepted' },
             });
         }
     }
