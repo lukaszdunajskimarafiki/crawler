@@ -174,7 +174,10 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                     }
                 });
 
-                const imagePromises = root.querySelectorAll('img').map(async (el) => {
+                // Batch image processing to avoid DB connection exhaustion
+                const imageData: { url: string; pageId: number; size: number }[] = [];
+                const imgElements = root.querySelectorAll('img');
+                for (const el of imgElements) {
                     const src = el.getAttribute('src');
                     if (src) {
                         try {
@@ -186,13 +189,14 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                                     headers: {
                                         'User-Agent': userAgent,
                                         'Accept': 'image/webp,image/*,*/*;q=0.8'
-                                    }
-                                });
+                                    },
+                                    timeout: 5000,
+                                } as any);
                                 const contentLength = imgRes.headers.get('content-length');
                                 const contentType = imgRes.headers.get('content-type');
 
                                 if (contentLength) {
-                                    size = Math.round(parseInt(contentLength) / 1024); // Size in KB
+                                    size = Math.round(parseInt(contentLength) / 1024);
                                 }
 
                                 if (contentType && contentType.includes('image/webp')) {
@@ -201,19 +205,18 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                             } catch (e) {
                                 // Ignore fetch errors for images
                             }
-
-                            await prisma.image.create({
-                                data: {
-                                    url: absoluteSrc,
-                                    pageId: page.id,
-                                    size: size
-                                }
-                            });
+                            imageData.push({ url: absoluteSrc, pageId: page.id, size });
                         } catch (e) { }
                     }
-                });
-                await Promise.all(imagePromises);
+                }
+                if (imageData.length > 0) {
+                    await prisma.$transaction(
+                        imageData.map(img => prisma.image.create({ data: img }))
+                    ).catch(() => { });
+                }
 
+                // Batch link creation
+                const linkData: { url: string; pageId: number }[] = [];
                 root.querySelectorAll('a').forEach((el) => {
                     const href = el.getAttribute('href');
                     if (href) {
@@ -229,16 +232,16 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                                 queue.push(absoluteHref);
                             }
 
-                            prisma.link.create({
-                                data: {
-                                    url: absoluteHref,
-                                    pageId: page.id,
-                                }
-                            }).catch(() => { });
+                            linkData.push({ url: absoluteHref, pageId: page.id });
                         } catch (e) {
                         }
                     }
                 });
+                if (linkData.length > 0) {
+                    await prisma.$transaction(
+                        linkData.map(lnk => prisma.link.create({ data: lnk }))
+                    ).catch(() => { });
+                }
 
             } catch (error) {
                 console.error(`Failed to crawl ${url}`, error);
