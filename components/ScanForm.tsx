@@ -61,6 +61,14 @@ export default function ScanForm() {
         setError('');
         setSubmitting(true);
 
+        // Show spinner immediately
+        setActiveScan({
+            id: 0,
+            url: url,
+            status: 'pending',
+            pagesScanned: 0,
+        });
+
         try {
             const res = await fetch('/api/crawl', {
                 method: 'POST',
@@ -71,6 +79,7 @@ export default function ScanForm() {
             if (res.status === 409) {
                 const data = await res.json();
                 setError(data.error || 'Ta domena jest już skanowana.');
+                setActiveScan(null);
                 return;
             }
 
@@ -85,6 +94,7 @@ export default function ScanForm() {
             });
         } catch {
             setError('Wystąpił błąd. Sprawdź poprawność URL.');
+            setActiveScan(null);
         } finally {
             setSubmitting(false);
         }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from '@/styles/App.module.css';
 
@@ -122,8 +122,8 @@ export default function ScanHistory() {
                     </thead>
                     <tbody>
                         {scans.map(scan => (
-                            <>
-                                <tr key={scan.id}>
+                            <React.Fragment key={scan.id}>
+                                <tr>
                                     <td className={styles.urlCell} data-label="URL">{scan.url}</td>
                                     <td data-label="Status">{getStatusBadge(scan.status)}</td>
                                     <td data-label="Stron">{scan.pagesScanned}</td>
@@ -148,7 +148,7 @@ export default function ScanHistory() {
                                     </td>
                                 </tr>
                                 {expandedId === scan.id && (
-                                    <tr key={`preview-${scan.id}`} className={styles.previewRow}>
+                                    <tr className={styles.previewRow}>
                                         <td colSpan={5}>
                                             {previewLoading ? (
                                                 <div className={styles.previewLoading}>
@@ -199,7 +199,7 @@ export default function ScanHistory() {
                                         </td>
                                     </tr>
                                 )}
-                            </>
+                            </React.Fragment>
                         ))}
                     </tbody>
                 </table>
