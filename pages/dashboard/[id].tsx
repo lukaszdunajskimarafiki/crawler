@@ -421,7 +421,7 @@ export default function Dashboard() {
 
                 <h1 className={styles.title}>Raport dla {data.url}</h1>
                 <div className={styles.status}>Status: {data.status}</div>
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                         onClick={() => generateSeoReport(data)}
                         className={styles.button}

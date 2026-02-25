@@ -349,3 +349,133 @@
     font-weight: 700;
     padding: 0.2rem 0;
 }
+
+/* === Mobile Responsive === */
+@media (max-width: 768px) {
+    .sideNav {
+        display: none;
+    }
+
+    .dashboardHeader {
+        padding: 0 1rem;
+        height: auto;
+        min-height: 56px;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .headerTitle {
+        font-size: 0.85rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 1.25rem;
+        word-break: break-all;
+    }
+
+    .statsGrid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .bigNumber {
+        font-size: 2rem;
+    }
+
+    .card {
+        min-width: unset;
+    }
+
+    .table {
+        font-size: 0.75rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5rem 0.5rem;
+    }
+
+    .urlCell {
+        max-width: 150px;
+    }
+
+    .titleCell {
+        max-width: 120px;
+    }
+
+    .button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .pagination {
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .pageButton {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .redirectList li {
+        word-break: break-all;
+        font-size: 0.85rem;
+    }
+
+    .chain {
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .dashboardHeader {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .headerRight {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .container {
+        padding: 0.75rem;
+    }
+
+    .title {
+        font-size: 1.1rem;
+    }
+
+    .table {
+        font-size: 0.7rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.35rem 0.35rem;
+    }
+
+    .urlCell {
+        max-width: 100px;
+    }
+
+    .titleCell {
+        max-width: 80px;
+    }
+
+    .bigNumber {
+        font-size: 1.75rem;
+    }
+
+    .summarySection h2 {
+        font-size: 1.05rem;
+    }
+}
