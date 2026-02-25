@@ -147,7 +147,8 @@ export default function ScanForm() {
                                 </span>
                             </div>
                             <p className={styles.statusHint}>
-                                Możesz poczekać tutaj — strona aktualizuje się automatycznie.
+                                Skanowanie może potrwać kilka minut w zależności od wielkości strony.<br />
+                                Po zakończeniu otrzymasz powiadomienie e-mail z linkiem do raportu.
                             </p>
                         </>
                     )}
