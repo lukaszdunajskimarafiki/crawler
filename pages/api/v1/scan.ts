@@ -29,32 +29,13 @@ export default async function handler(
         const domainHost = new URL(url).hostname;
         const redirectResults = await checkRedirects(domainHost);
 
-        let domainRecord = await prisma.domain.findUnique({
-            where: { url: url }
+        const domainRecord = await prisma.domain.create({
+            data: {
+                url: url,
+                status: 'pending',
+                redirects: JSON.stringify(redirectResults),
+            }
         });
-
-        if (domainRecord) {
-            await prisma.page.deleteMany({
-                where: { domainId: domainRecord.id }
-            });
-
-            domainRecord = await prisma.domain.update({
-                where: { id: domainRecord.id },
-                data: {
-                    status: 'pending',
-                    redirects: JSON.stringify(redirectResults),
-                    webpSupported: false
-                }
-            });
-        } else {
-            domainRecord = await prisma.domain.create({
-                data: {
-                    url: url,
-                    status: 'pending',
-                    redirects: JSON.stringify(redirectResults)
-                }
-            });
-        }
 
         // Start crawling in background
         crawlDomain(url, domainRecord.id, userAgent);
