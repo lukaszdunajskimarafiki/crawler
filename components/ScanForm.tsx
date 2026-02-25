@@ -61,10 +61,16 @@ export default function ScanForm() {
         setError('');
         setSubmitting(true);
 
+        // Auto-prepend https:// if no protocol given
+        let finalUrl = url.trim();
+        if (!/^https?:\/\//i.test(finalUrl)) {
+            finalUrl = `https://${finalUrl}`;
+        }
+
         // Show spinner immediately
         setActiveScan({
             id: 0,
-            url: url,
+            url: finalUrl,
             status: 'pending',
             pagesScanned: 0,
         });
@@ -73,7 +79,7 @@ export default function ScanForm() {
             const res = await fetch('/api/crawl', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, userAgent }),
+                body: JSON.stringify({ url: finalUrl, userAgent }),
             });
 
             if (res.status === 409) {
@@ -88,7 +94,7 @@ export default function ScanForm() {
             const data = await res.json();
             setActiveScan({
                 id: data.id,
-                url: url,
+                url: finalUrl,
                 status: data.queueStatus === 'queued' ? 'queued' : 'crawling',
                 pagesScanned: 0,
             });
@@ -200,10 +206,10 @@ export default function ScanForm() {
                 </label>
                 <input
                     id="scan-url"
-                    type="url"
+                    type="text"
                     value={url}
                     onChange={e => setUrl(e.target.value)}
-                    placeholder="https://przyklad.com"
+                    placeholder="przyklad.com"
                     required
                     className={styles.input}
                 />
