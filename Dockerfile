@@ -1,8 +1,8 @@
-# Wybieramy obraz bazowy Node.js
-FROM node:18-alpine
+# Wybieramy obraz bazowy Node.js (Debian-based for Prisma compatibility)
+FROM node:18-slim
 
 # Instalujemy zależności systemowe wymagane przez Prisma
-RUN apk add --no-cache openssl openssl-dev libc6-compat
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Ustawiamy katalog roboczy
 WORKDIR /app
