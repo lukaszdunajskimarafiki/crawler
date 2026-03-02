@@ -3,6 +3,12 @@ import styles from '@/styles/App.module.css';
 
 const GOOGLEBOT_UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 
+interface SitemapInfo {
+    urlCount: number;
+    estimate: string;
+    found: boolean;
+}
+
 interface ScanStatus {
     id: number;
     url: string;
@@ -15,7 +21,10 @@ export default function ScanForm() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [activeScan, setActiveScan] = useState<ScanStatus | null>(null);
+    const [sitemapInfo, setSitemapInfo] = useState<SitemapInfo | null>(null);
+    const [sitemapLoading, setSitemapLoading] = useState(false);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const sitemapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Poll scan status
     useEffect(() => {
@@ -98,9 +107,30 @@ export default function ScanForm() {
         }
     };
 
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setUrl(val);
+        setSitemapInfo(null);
+        if (sitemapTimer.current) clearTimeout(sitemapTimer.current);
+        if (!val.trim()) return;
+        setSitemapLoading(true);
+        sitemapTimer.current = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/sitemap-check?url=${encodeURIComponent(val.trim())}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSitemapInfo(data);
+                }
+            } catch { /* ignore */ } finally {
+                setSitemapLoading(false);
+            }
+        }, 800);
+    };
+
     const handleNewScan = () => {
         setActiveScan(null);
         setUrl('');
+        setSitemapInfo(null);
     };
 
     // Active scan view
@@ -201,11 +231,29 @@ export default function ScanForm() {
                     id="scan-url"
                     type="text"
                     value={url}
-                    onChange={e => setUrl(e.target.value)}
+                    onChange={handleUrlChange}
                     placeholder="przyklad.com"
                     required
                     className={styles.input}
                 />
+
+                {/* Sitemap estimation banner */}
+                {sitemapLoading && (
+                    <p style={{ fontSize: '0.85rem', color: '#888', marginTop: '0.5rem' }}>Sprawdzam sitemap...</p>
+                )}
+                {!sitemapLoading && sitemapInfo && (
+                    <div style={{
+                        marginTop: '0.5rem', padding: '0.5rem 0.75rem',
+                        borderRadius: '6px', fontSize: '0.85rem',
+                        background: sitemapInfo.urlCount > 5000 ? '#fff3cd' : '#e8f5e9',
+                        color: sitemapInfo.urlCount > 5000 ? '#856404' : '#2e7d32',
+                        border: `1px solid ${sitemapInfo.urlCount > 5000 ? '#ffc107' : '#a5d6a7'}`,
+                    }}>
+                        {sitemapInfo.found
+                            ? <>📍 Sitemap: <strong>{sitemapInfo.urlCount.toLocaleString()} URL-ów</strong> — szacowany czas: <strong>{sitemapInfo.estimate}</strong></>
+                            : <>ℹ️ Brak sitemap.xml — szacowany czas: <strong>kilka minut</strong></>}
+                    </div>
+                )}
             </div>
 
 

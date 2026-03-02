@@ -5,6 +5,7 @@ import { getDomainInfo } from './whois';
 import { getSSLInfo } from './ssl';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; SEOCrawler/1.0; +http://example.com/bot)';
+const MAX_PAGES = 10000;
 
 /** Daje bazie czas na przetworzenie zapytań między stronami */
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
@@ -125,6 +126,10 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
 
     try {
         while (queue.length > 0) {
+            if (visited.size >= MAX_PAGES) {
+                console.log(`[Crawler] MAX_PAGES (${MAX_PAGES}) reached for ${domainUrl}, stopping.`);
+                break;
+            }
             const url = queue.shift();
             if (!url || visited.has(url)) continue;
             visited.add(url);
