@@ -6,6 +6,16 @@ import { getSSLInfo } from './ssl';
 
 const USER_AGENT = 'Mozilla/5.0 (compatible; SEOCrawler/1.0; +http://example.com/bot)';
 
+/** Daje bazie czas na przetworzenie zapytań między stronami */
+function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
+
+/** Wstawia rekordy partiami, żeby nie tworzyć wielkich transakcji */
+async function batchInsert<T>(items: T[], fn: (batch: T[]) => Promise<any>, size = 50) {
+    for (let i = 0; i < items.length; i += size) {
+        await fn(items.slice(i, i + size)).catch(() => { });
+    }
+}
+
 export async function checkRedirects(domain: string) {
     const variants = [
         `http://${domain}`,
@@ -210,9 +220,9 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                     }
                 }
                 if (imageData.length > 0) {
-                    await prisma.$transaction(
-                        imageData.map(img => prisma.image.create({ data: img }))
-                    ).catch(() => { });
+                    await batchInsert(imageData, batch =>
+                        prisma.$transaction(batch.map(img => prisma.image.create({ data: img })))
+                    );
                 }
 
                 // Batch link creation
@@ -238,10 +248,13 @@ export async function crawlDomain(domainUrl: string, domainId: number, userAgent
                     }
                 });
                 if (linkData.length > 0) {
-                    await prisma.$transaction(
-                        linkData.map(lnk => prisma.link.create({ data: lnk }))
-                    ).catch(() => { });
+                    await batchInsert(linkData, batch =>
+                        prisma.$transaction(batch.map(lnk => prisma.link.create({ data: lnk })))
+                    );
                 }
+
+                // Daje bazie czas na przetworzenie przed następną stroną
+                await sleep(50);
 
             } catch (error) {
                 console.error(`Failed to crawl ${url}`, error);
