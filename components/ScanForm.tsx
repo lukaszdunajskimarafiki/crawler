@@ -1,14 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from '@/styles/App.module.css';
 
-const USER_AGENTS = [
-    { name: 'Googlebot', value: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)' },
-    { name: 'Chrome on Windows', value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-    { name: 'Chrome on Mac', value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
-    { name: 'Firefox on Windows', value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0' },
-    { name: 'Safari on Mac', value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15' },
-    { name: 'Bingbot', value: 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)' },
-];
+const GOOGLEBOT_UA = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 
 interface ScanStatus {
     id: number;
@@ -19,7 +12,6 @@ interface ScanStatus {
 
 export default function ScanForm() {
     const [url, setUrl] = useState('');
-    const [userAgent, setUserAgent] = useState(USER_AGENTS[0].value);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [activeScan, setActiveScan] = useState<ScanStatus | null>(null);
@@ -79,7 +71,7 @@ export default function ScanForm() {
             const res = await fetch('/api/crawl', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: finalUrl, userAgent }),
+                body: JSON.stringify({ url: finalUrl, userAgent: GOOGLEBOT_UA }),
             });
 
             if (res.status === 409) {
@@ -216,23 +208,7 @@ export default function ScanForm() {
                 />
             </div>
 
-            <div className={styles.formGroup}>
-                <label htmlFor="scan-ua" className={styles.label}>
-                    User Agent
-                </label>
-                <select
-                    id="scan-ua"
-                    value={userAgent}
-                    onChange={e => setUserAgent(e.target.value)}
-                    className={styles.select}
-                >
-                    {USER_AGENTS.map(ua => (
-                        <option key={ua.name} value={ua.value}>
-                            {ua.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
+
 
             <button
                 type="submit"
